@@ -24,8 +24,8 @@ public class Human {
         return surname;
     }
 
-    public DateTime getBdayDate() {
-        return DateTime.parse(bdayDate);
+    public String getBdayDate() {
+        return bdayDate;
     }
 
 }

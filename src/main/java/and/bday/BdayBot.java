@@ -1,18 +1,12 @@
 package and.bday;
 
-import and.bday.service.model.Human;
-import com.google.gson.Gson;
-import com.ullink.slack.simpleslackapi.SlackSession;
-import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+@ComponentScan
+@EnableAutoConfiguration
 public class BdayBot {
 
     private static final Logger logger = Logger.getLogger(BdayBot.class);
@@ -20,10 +14,10 @@ public class BdayBot {
     public static void main(String[] args) {
 
         System.out.println("Bot added!");
-
+        SpringApplication.run(BdayBot.class, args);
 
         logger.info("Start Bday BOOOT");
-        final String secretKey = System.getProperty("slackApiKey");
+       /* final String secretKey = System.getProperty("slackApiKey");
 
         SlackSession slackSession = SlackSessionFactory.createWebSocketSlackSession(secretKey);
 
@@ -42,7 +36,7 @@ public class BdayBot {
             System.out.println(gson.toJson(humans));
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
     }
 }
