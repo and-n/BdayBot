@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @RestController
@@ -17,21 +19,38 @@ public class BdayController {
 
     private static final Logger log = Logger.getLogger(BdayController.class);
 
-    @Autowired
+
     private HumanService humanService;
 
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
-    public Human getHuman(@RequestParam(value = "days", required = false, defaultValue = "0") int days) {
-        log.info("Request bdays from " + new Date().toString() + " plus " + days);
-        humanService.whosBdayToday();
-
-        return new Human("Name", "sname", DateTime.now());
+    @Autowired
+    public void setHumanService(HumanService humanService) {
+        this.humanService = humanService;
     }
 
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    public Human addHuman(@RequestParam String name, @RequestParam String surname, @RequestParam String bday) {
+    @RequestMapping(value = "/human", method = RequestMethod.GET)
+    public List getHuman(@RequestParam(value = "days", required = false, defaultValue = "0") int days,
+                         @RequestParam(value = "all", required = false, defaultValue = "false") boolean all) {
+        log.info("Request bdays from " + new Date().toString() + " plus " + days);
+        if (all) {
+            return humanService.whosBdayAtDay(DateTime.now(), DateTime.now().plusYears(1));
+        }
+        List<Human> humans = new ArrayList<Human>();
+        for (int i = 0; i <= days; i++) {
+            humans.addAll(humanService.whosBdayAtDay(DateTime.now().plusDays(i)));
+        }
+        return humans;
+    }
 
-        return new Human("Name", "sname", DateTime.now());
+    @RequestMapping(value = "/human/add", method = RequestMethod.POST)
+    public void addHuman(@RequestParam String name, @RequestParam String surname, @RequestParam String bday) {
+        humanService.addHuman(new Human(name, surname, DateTime.parse(bday)));
+
+    }
+
+    @RequestMapping(value = "/human/remove", method = RequestMethod.POST)
+    public void removeHuman(@RequestParam String name, @RequestParam String surname) {
+
+
     }
 
 }

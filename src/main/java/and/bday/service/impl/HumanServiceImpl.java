@@ -8,9 +8,13 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,8 +23,8 @@ import java.util.stream.Collectors;
 public class HumanServiceImpl implements HumanService {
 
     private final Logger log = Logger.getLogger(HumanServiceImpl.class);
-    private String humanListFile = System.getProperty("HumanListFile", "humans.json");
-
+    private String humanListFile = System.getProperty("humanListFile", "humans.json");
+    private Gson gson = new Gson();
 
     @Override
     public List<Human> whosBdayToday() {
@@ -29,20 +33,13 @@ public class HumanServiceImpl implements HumanService {
 
     @Override
     public List<Human> whosBdayAtDay(DateTime date) {
-        try {
-            final List<Human> humansBdayList = loadHumanListFromFile();
-            List<Human> listForToday = humansBdayList
-                    .stream()
-                    .filter(human -> DateTime.parse(human.getBdayDate()).dayOfYear().equals(DateTime.now().dayOfYear()))
-                    .collect(Collectors.toList());
-            log.info("There are " + humanListFile.length() + " birthdays at " + date);
-            return listForToday;
-
-        } catch (final FileNotFoundException e) {
-            log.error("No FILE! ", e);
-        }
-
-        return new ArrayList<>();
+        final List<Human> humansBdayList = loadHumanListFromFile();
+        final List<Human> listForToday = humansBdayList
+                .stream()
+                .filter(human -> DateTime.parse(human.getBdayDate()).dayOfYear().equals(date.dayOfYear()))
+                .collect(Collectors.toList());
+        log.info("There are " + listForToday.size() + " birthdays at " + date);
+        return listForToday;
     }
 
     @Override
@@ -51,23 +48,64 @@ public class HumanServiceImpl implements HumanService {
     }
 
     @Override
-    public void removeHuman(Human human) {
-
+    public List<Human> whosBdayAtDay(final DateTime from, final DateTime to) {
+        final List<Human> humans = new ArrayList<>();
+        for (DateTime day = from; day.isBefore(to) || day.isEqual(to); day = day.plusDays(1)) {
+            humans.addAll(whosBdayAtDay(day));
+        }
+        return humans;
     }
 
-    private List<Human> loadHumanListFromFile() throws FileNotFoundException {
-        final Gson gson = new Gson();
+    @Override
+    public void removeHuman(final Human human) {
+        log.info("remove human " + human);
+        saveHumansToFile(
+                loadHumanListFromFile().stream()
+                        .filter(human1 -> !human1.equals(human))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public void removeHumanByFullName(final String fullName) {
+        log.info("remove human by full name " + fullName);
+        saveHumansToFile(
+                loadHumanListFromFile().stream()
+                        .filter(human1 -> !(human1.getName() + human1.getSurname()).equals(fullName))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    private List<Human> loadHumanListFromFile() {
+
         Type listType = new TypeToken<ArrayList<Human>>() {
         }.getType();
-
-        List<Human> humans = gson.fromJson(new FileReader(humanListFile), listType);
-        humans = humans != null ? humans : new ArrayList<>();
+        final List<Human> humans = new ArrayList<>();
+        final Path filePath = Paths.get(humanListFile);
+        if (Files.exists(filePath)) {
+            try {
+                humans.addAll(gson.fromJson(new FileReader(humanListFile), listType));
+            } catch (Exception e) {
+                log.error("File " + humanListFile + " loading problem", e);
+            }
+        } else {
+            saveHumansToFile(humans);
+        }
 
         return humans;
     }
 
     private void saveHumansToFile(List<Human> humans) {
-
+        final Path filePath = Paths.get(humanListFile);
+        try {
+            final FileWriter fw = new FileWriter(filePath.toFile());
+            final String gs = gson.toJson(humans);
+            fw.write(gs);
+            fw.flush();
+            fw.close();
+            log.info("file " + humanListFile + " created");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

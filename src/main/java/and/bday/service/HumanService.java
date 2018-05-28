@@ -11,8 +11,12 @@ public interface HumanService {
 
     List<Human> whosBdayAtDay(DateTime date);
 
+    List<Human> whosBdayAtDay(DateTime from, DateTime to);
+
     void addHuman(Human human);
 
     void removeHuman(Human human);
+
+    void removeHumanByFullName(String name);
 
 }
