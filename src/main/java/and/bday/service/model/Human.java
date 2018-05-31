@@ -28,4 +28,12 @@ public class Human {
         return bdayDate;
     }
 
+    @Override
+    public String toString() {
+        return "Human{" +
+                "name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", bdayDate='" + bdayDate + '\'' +
+                '}';
+    }
 }

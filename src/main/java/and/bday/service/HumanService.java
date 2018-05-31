@@ -15,6 +15,8 @@ public interface HumanService {
 
     void addHuman(Human human);
 
+    void addHuman(String name, String surname, String bday);
+
     void removeHuman(Human human);
 
     void removeHumanByFullName(String name);

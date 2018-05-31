@@ -6,6 +6,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
@@ -24,7 +26,7 @@ public class HumanServiceImpl implements HumanService {
 
     private final Logger log = Logger.getLogger(HumanServiceImpl.class);
     private String humanListFile = System.getProperty("humanListFile", "humans.json");
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     @Override
     public List<Human> whosBdayToday() {
@@ -44,7 +46,37 @@ public class HumanServiceImpl implements HumanService {
 
     @Override
     public void addHuman(Human human) {
+        if (human != null) {
+            List<Human> allHumans = loadHumanListFromFile();
+            allHumans.remove(human);
+            allHumans.add(human);
+            saveHumansToFile(allHumans);
+        }
+    }
 
+    @Override
+    public void addHuman(String name, String surname, String bday) {
+        if (name == null || name.trim().isEmpty()) {
+            log.error("Adding empty name");
+            return;
+        }
+        if (surname == null || surname.trim().isEmpty()) {
+            log.error("Adding empty surname");
+            return;
+        }
+        if (bday == null || bday.trim().isEmpty()) {
+            log.error("Adding empty bday");
+            return;
+        }
+        DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern("dd.MM.yyyy");
+
+        try {
+            DateTime bdayDate = DateTime.parse(bday, dateTimeFormat);
+
+            addHuman(new Human(name, surname, bdayDate));
+        } catch (final Exception e) {
+            log.error("fail created human", e);
+        }
     }
 
     @Override
@@ -70,7 +102,7 @@ public class HumanServiceImpl implements HumanService {
         log.info("remove human by full name " + fullName);
         saveHumansToFile(
                 loadHumanListFromFile().stream()
-                        .filter(human1 -> !(human1.getName() + human1.getSurname()).equals(fullName))
+                        .filter(human1 -> !(human1.getName() + human1.getSurname()).toLowerCase().equals(fullName.toLowerCase()))
                         .collect(Collectors.toList())
         );
     }
@@ -80,31 +112,35 @@ public class HumanServiceImpl implements HumanService {
         Type listType = new TypeToken<ArrayList<Human>>() {
         }.getType();
         final List<Human> humans = new ArrayList<>();
-        final Path filePath = Paths.get(humanListFile);
-        if (Files.exists(filePath)) {
-            try {
-                humans.addAll(gson.fromJson(new FileReader(humanListFile), listType));
-            } catch (Exception e) {
-                log.error("File " + humanListFile + " loading problem", e);
+        synchronized (gson) {
+            final Path filePath = Paths.get(humanListFile);
+            if (Files.exists(filePath)) {
+                try {
+                    humans.addAll(gson.fromJson(new FileReader(humanListFile), listType));
+                } catch (Exception e) {
+                    log.error("File " + humanListFile + " loading problem", e);
+                }
+            } else {
+                saveHumansToFile(humans);
             }
-        } else {
-            saveHumansToFile(humans);
         }
 
         return humans;
     }
 
     private void saveHumansToFile(List<Human> humans) {
-        final Path filePath = Paths.get(humanListFile);
-        try {
-            final FileWriter fw = new FileWriter(filePath.toFile());
-            final String gs = gson.toJson(humans);
-            fw.write(gs);
-            fw.flush();
-            fw.close();
-            log.info("file " + humanListFile + " created");
-        } catch (IOException e) {
-            e.printStackTrace();
+        synchronized (gson) {
+            final Path filePath = Paths.get(humanListFile);
+            try (final FileWriter fw = new FileWriter(filePath.toFile())) {
+                // add save to temp file
+                final String gs = gson.toJson(humans);
+                fw.write(gs);
+                fw.flush();
+                fw.close();
+                log.info("file " + humanListFile + " created");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
