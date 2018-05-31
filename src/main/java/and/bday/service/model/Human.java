@@ -2,6 +2,8 @@ package and.bday.service.model;
 
 import org.joda.time.DateTime;
 
+import java.util.Objects;
+
 public class Human {
 
     private final String name;
@@ -35,5 +37,20 @@ public class Human {
                 ", surname='" + surname + '\'' +
                 ", bdayDate='" + bdayDate + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Human human = (Human) o;
+        return Objects.equals(name, human.name) &&
+                Objects.equals(surname, human.surname);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(name, surname, bdayDate);
     }
 }
