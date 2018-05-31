@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MainPage</title>
+</head>
+<body>
+<h2>Add human</h2>
+
+<form action="/addhuman" method="get">
+    First name: <input type="text" name="name"><br>
+    Last name: <input type="text" name="surname"><br>
+    Bday date: <input type="text" name="bday"><br>
+    <button type="submit">Submit</button>
+    <br>
+</form>
+
+<!--<a href="/addhuman">Добавить нового человека</a>-->
+
+<h2>Remove human</h2>
+
+<form action="/removehuman" method="get">
+    First name: <input type="text" name="name"><br>
+    Last name: <input type="text" name="surname"><br>
+    <button type="submit">Submit</button>
+    <br>
+</form>
+
+<h2>Who's next?</h2>
+
+<a href="/next">check</a>
+
+
+</body>
+</html>
