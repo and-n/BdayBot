@@ -1,5 +1,9 @@
-package and.bday.service;
+package and.bday.controller;
 
+import and.bday.service.CongratulationService;
+import and.bday.service.HumanService;
+import and.bday.service.SlackIntegrationService;
+import and.bday.service.model.CongratulationMessage;
 import and.bday.service.model.Human;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -21,10 +25,22 @@ public class BdayController {
 
 
     private HumanService humanService;
+    private SlackIntegrationService slackIntegrationService;
+    private CongratulationService congratulationService;
 
     @Autowired
     public void setHumanService(HumanService humanService) {
         this.humanService = humanService;
+    }
+
+    @Autowired
+    public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
+        this.slackIntegrationService = slackIntegrationService;
+    }
+
+    @Autowired
+    public void setCongratulationService(CongratulationService congratulationService) {
+        this.congratulationService = congratulationService;
     }
 
     @RequestMapping(value = "/human", method = RequestMethod.GET)
@@ -34,7 +50,7 @@ public class BdayController {
         if (all) {
             return humanService.whosBdayAtDay(DateTime.now(), DateTime.now().plusYears(1));
         }
-        List<Human> humans = new ArrayList<Human>();
+        List<Human> humans = new ArrayList<>();
         for (int i = 0; i <= days; i++) {
             humans.addAll(humanService.whosBdayAtDay(DateTime.now().plusDays(i)));
         }
@@ -44,12 +60,16 @@ public class BdayController {
     @RequestMapping(value = "/human/add", method = RequestMethod.POST)
     public void addHuman(@RequestParam String name, @RequestParam String surname, @RequestParam String bday) {
         humanService.addHuman(new Human(name, surname, DateTime.parse(bday)));
-
     }
 
     @RequestMapping(value = "/human/remove", method = RequestMethod.POST)
     public void removeHuman(@RequestParam String name, @RequestParam String surname) {
+        humanService.removeHumanByFullName(name + " " + surname);
+    }
 
+    @RequestMapping(value = "/testmessage", method = RequestMethod.GET)
+    public void testMessage() {
+        slackIntegrationService.sendCongratulation(new Human("Andrey", "Tonevitskiy", DateTime.now()), new CongratulationMessage("", ""));
 
     }
 

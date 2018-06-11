@@ -1,51 +1,51 @@
 package and.bday.service.impl;
 
 import and.bday.service.CongratulationService;
-import and.bday.service.model.Human;
-import javafx.util.Pair;
+import and.bday.service.FileService;
+import and.bday.service.model.CongratulationMessage;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+@Service
 public class CongratulationServiceImpl implements CongratulationService {
 
     private static final Logger log = Logger.getLogger(CongratulationServiceImpl.class);
+    private static Random randomGenerator = new Random();
+    private final String congratulationMessagesFile = System.getProperty("messageFileName", "messages.json");
+    private FileService<CongratulationMessage> messageFileService;
+
+    @Autowired
+    public void setMessageFileService(FileService<CongratulationMessage> messageFileService) {
+        this.messageFileService = messageFileService;
+    }
 
     @Override
-    public Pair<String, String> getCongratulation() {
+    public CongratulationMessage getCongratulation() {
         try {
-
-            List<String> preparationList = Arrays.asList("Сегодня поздравляем ",
-                    " с прекрасным Днём Рождения!)");  // TODO load from file!
+            List<CongratulationMessage> preparationList = messageFileService.loadListFromFile(congratulationMessagesFile);
 
             if (preparationList.size() > 0) {
-                final String wish = preparationList.get(randomGenerator.nextInt(preparationList.size()));
-                final String[] res = wish.split("@");
-                if (res.length != 2) {
-                    return new Pair<>("", "");
-                }
-                return new Pair<>(res[0], res[1]);
+                return preparationList.get(randomGenerator.nextInt(preparationList.size()));
             }
         } catch (final Exception e) {
             log.error(" congratulation problem! ", e);
         }
-        return new Pair<>("Сегодня мы поздравляем ", " с Днём рождения!");
-    }
-
-    private Random randomGenerator;
-
-    @Override
-    public String getWishes() {
-        List<String> wishesList = Arrays.asList("Счастья",
-                "Здоровья");  // TODO load from file!
-
-        return "";
+        return new CongratulationMessage("Happy birthday ", "! ");
     }
 
     @Override
-    public void congratulate(final Human human, final Pair<String, String> prepare, final String wishes) {
+    public void addCongratulationMessage(CongratulationMessage congratulationMessage) {
+        List<CongratulationMessage> list = messageFileService.loadListFromFile(congratulationMessagesFile);
+        list.add(congratulationMessage);
+        messageFileService.saveListToFile(
+                list,
+                congratulationMessagesFile
+        );
 
     }
+
 }
