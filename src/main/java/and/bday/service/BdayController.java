@@ -23,6 +23,7 @@ public class BdayController {
 
     private HumanService humanService;
     private SlackIntegrationService slackIntegrationService;
+    private CongratulationService congratulationService;
 
     @Autowired
     public void setHumanService(HumanService humanService) {
@@ -32,6 +33,11 @@ public class BdayController {
     @Autowired
     public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
         this.slackIntegrationService = slackIntegrationService;
+    }
+
+    @Autowired
+    public void setCongratulationService(CongratulationService congratulationService) {
+        this.congratulationService = congratulationService;
     }
 
     @RequestMapping(value = "/human", method = RequestMethod.GET)
@@ -60,7 +66,7 @@ public class BdayController {
 
     @RequestMapping(value = "/testmessage", method = RequestMethod.GET)
     public void testMessage() {
-       slackIntegrationService.sendCongratulation(new Human("Andrey","Tonevitskiy",DateTime.now()), new CongratulationMessage("",""));
+        slackIntegrationService.sendCongratulation(new Human("Andrey", "Tonevitskiy", DateTime.now()), new CongratulationMessage("", ""));
 
     }
 

@@ -3,11 +3,9 @@ package and.bday.service.impl;
 import and.bday.service.SlackIntegrationService;
 import and.bday.service.model.CongratulationMessage;
 import and.bday.service.model.Human;
-import com.ullink.slack.simpleslackapi.SlackChannel;
-import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
-import com.ullink.slack.simpleslackapi.SlackSession;
-import com.ullink.slack.simpleslackapi.SlackUser;
+import com.ullink.slack.simpleslackapi.*;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
+import com.ullink.slack.simpleslackapi.replies.SlackMessageReply;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +15,7 @@ import java.io.IOException;
 public class SlackIntegrationServiceImpl implements SlackIntegrationService {
 
     private static final Logger log = Logger.getLogger(SlackIntegrationServiceImpl.class);
-    private static final SlackSession session = SlackSessionFactory.createWebSocketSlackSession("");
+    private static final SlackSession session = SlackSessionFactory.createWebSocketSlackSession(System.getProperty("slack_bot_id", "unknownBotKey"));
 
     @Override
     public void sendCongratulation(Human human, CongratulationMessage congratulationMessage) {
@@ -26,12 +24,15 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
                 final SlackChannel channel = session.findChannelByName("bdaytest");
                 final SlackUser user = findUserForHuman(human);
 
-                session.sendMessage(channel, "Happy birthday! <@" + user.getId() + ">   ");
+                SlackMessageHandle<SlackMessageReply> messageHandle = session.sendMessage(channel, "Happy birthday! <@" + user.getId() + ">   ");
+                session.addReactionToMessage(channel, messageHandle.getReply().getTimestamp(), "tada");
+                session.addReactionToMessage(channel, messageHandle.getReply().getTimestamp(), "yayfox");
+                session.addReactionToMessage(channel, messageHandle.getReply().getTimestamp(), "birthday");
             }
-
+            throw  new NullPointerException();
         } catch (final Exception e) {
             log.error("Fail send message ", e);
-            sendError("fail to send message for " + human + "  and " + e.getMessage());
+            sendError("fail to send message\n for " + human + "''' \nand '" + e.getMessage()+"'");
         }
     }
 
@@ -65,8 +66,12 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
     }
 
     public static void sendError(final String message) {
-        SlackUser user = session.findUserById("U14E136GM");
-        session.sendMessageToUser(user, new SlackPreparedMessage.Builder().withMessage(message).build());
-        log.info("send error message '" + message + "'.");
+        try {
+            SlackUser user = session.findUserById("U14E136GM");
+            session.sendMessageToUser(user, new SlackPreparedMessage.Builder().withMessage(message).build());
+            log.info("send error message '" + message + "'.");
+        } catch (final Exception e) {
+            log.error(e);
+        }
     }
 }
