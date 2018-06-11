@@ -2,7 +2,9 @@ package and.bday.service.impl;
 
 import and.bday.service.HumanService;
 import and.bday.service.model.Human;
+import com.fatboyindustrial.gsonjodatime.Converters;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -25,8 +27,8 @@ import java.util.stream.Collectors;
 public class HumanServiceImpl implements HumanService {
 
     private final Logger log = Logger.getLogger(HumanServiceImpl.class);
-    private String humanListFile = System.getProperty("humanListFile", "humans.json");
-    private final Gson gson = new Gson();
+    private final String humanListFile = System.getProperty("humanListFile", "humans.json");
+    private final Gson gson = Converters.registerDateTime(new GsonBuilder().setPrettyPrinting()).create();
 
     @Override
     public List<Human> whosBdayToday() {
@@ -38,9 +40,9 @@ public class HumanServiceImpl implements HumanService {
         final List<Human> humansBdayList = loadHumanListFromFile();
         final List<Human> listForToday = humansBdayList
                 .stream()
-                .filter(human -> DateTime.parse(human.getBdayDate()).dayOfYear().equals(date.dayOfYear()))
+                .filter(human -> human.getBdayDate().dayOfYear().equals(date.dayOfYear()))
                 .collect(Collectors.toList());
-        log.info("There are " + listForToday.size() + " birthdays at " + date);
+        log.debug("There are " + listForToday.size() + " birthdays at " + date);
         return listForToday;
     }
 
@@ -115,8 +117,8 @@ public class HumanServiceImpl implements HumanService {
         synchronized (gson) {
             final Path filePath = Paths.get(humanListFile);
             if (Files.exists(filePath)) {
-                try {
-                    humans.addAll(gson.fromJson(new FileReader(humanListFile), listType));
+                try (final FileReader reader = new FileReader(humanListFile)) {
+                    humans.addAll(gson.fromJson(reader, listType));
                 } catch (Exception e) {
                     log.error("File " + humanListFile + " loading problem", e);
                 }
@@ -139,7 +141,8 @@ public class HumanServiceImpl implements HumanService {
                 fw.close();
                 log.info("file " + humanListFile + " created");
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Save to fail error! ", e);
+                SlackIntegrationServiceImpl.sendError("save to file error " + e.getMessage());
             }
         }
     }

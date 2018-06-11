@@ -8,13 +8,13 @@ public class Human {
 
     private final String name;
     private final String surname;
-    private final String bdayDate;
+    private final DateTime bdayDate;
 
 
     public Human(String name, String surname, DateTime bdayDate) {
         this.name = name;
         this.surname = surname;
-        this.bdayDate = bdayDate.toString();
+        this.bdayDate = bdayDate;
     }
 
 
@@ -26,7 +26,7 @@ public class Human {
         return surname;
     }
 
-    public String getBdayDate() {
+    public DateTime getBdayDate() {
         return bdayDate;
     }
 

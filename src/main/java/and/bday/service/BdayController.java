@@ -1,5 +1,6 @@
 package and.bday.service;
 
+import and.bday.service.model.CongratulationMessage;
 import and.bday.service.model.Human;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -21,10 +22,16 @@ public class BdayController {
 
 
     private HumanService humanService;
+    private SlackIntegrationService slackIntegrationService;
 
     @Autowired
     public void setHumanService(HumanService humanService) {
         this.humanService = humanService;
+    }
+
+    @Autowired
+    public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
+        this.slackIntegrationService = slackIntegrationService;
     }
 
     @RequestMapping(value = "/human", method = RequestMethod.GET)
@@ -34,7 +41,7 @@ public class BdayController {
         if (all) {
             return humanService.whosBdayAtDay(DateTime.now(), DateTime.now().plusYears(1));
         }
-        List<Human> humans = new ArrayList<Human>();
+        List<Human> humans = new ArrayList<>();
         for (int i = 0; i <= days; i++) {
             humans.addAll(humanService.whosBdayAtDay(DateTime.now().plusDays(i)));
         }
@@ -44,12 +51,16 @@ public class BdayController {
     @RequestMapping(value = "/human/add", method = RequestMethod.POST)
     public void addHuman(@RequestParam String name, @RequestParam String surname, @RequestParam String bday) {
         humanService.addHuman(new Human(name, surname, DateTime.parse(bday)));
-
     }
 
     @RequestMapping(value = "/human/remove", method = RequestMethod.POST)
     public void removeHuman(@RequestParam String name, @RequestParam String surname) {
+        humanService.removeHumanByFullName(name + " " + surname);
+    }
 
+    @RequestMapping(value = "/testmessage", method = RequestMethod.GET)
+    public void testMessage() {
+       slackIntegrationService.sendCongratulation(new Human("Andrey","Tonevitskiy",DateTime.now()), new CongratulationMessage("",""));
 
     }
 
