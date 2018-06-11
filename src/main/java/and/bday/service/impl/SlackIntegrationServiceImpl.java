@@ -29,7 +29,6 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
                 session.addReactionToMessage(channel, messageHandle.getReply().getTimestamp(), "yayfox");
                 session.addReactionToMessage(channel, messageHandle.getReply().getTimestamp(), "birthday");
             }
-            throw  new NullPointerException();
         } catch (final Exception e) {
             log.error("Fail send message ", e);
             sendError("fail to send message\n for " + human + "''' \nand '" + e.getMessage()+"'");

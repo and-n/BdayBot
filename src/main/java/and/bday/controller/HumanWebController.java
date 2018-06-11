@@ -1,5 +1,6 @@
-package and.bday.service;
+package and.bday.controller;
 
+import and.bday.service.HumanService;
 import and.bday.service.model.Human;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -29,9 +30,7 @@ public class HumanWebController {
                 || name.trim().isEmpty() || surName.trim().isEmpty() || bday.trim().isEmpty()) {
             return "";
         }
-
         log.info("Add " + name + " " + surName);
-
         try {
             humanService.addHuman(name, surName, bday);
             model.addAttribute("name", name);
@@ -41,6 +40,7 @@ public class HumanWebController {
             log.error("fail create human ", e);
             model.addAttribute("error", e);
         }
+
         return "addhuman";
     }
 
@@ -48,9 +48,9 @@ public class HumanWebController {
     public String removeHuman(@RequestParam(name = "name") String name, @RequestParam(name = "surname") String surName, Model model) {
         if (name == null || surName == null
                 || name.trim().isEmpty() || surName.trim().isEmpty()) {
-            return "";
+            model.addAttribute("error", "something is NULL!");
+            return "removehuman";
         }
-
         log.info("remove " + name + " " + surName);
 
         try {
@@ -63,7 +63,6 @@ public class HumanWebController {
             model.addAttribute("error", e);
         }
 
-
         return "removehuman";
     }
 
@@ -74,10 +73,9 @@ public class HumanWebController {
         if (nextHumanBdays.isEmpty()) {
             return "next";
         }
-        for (int i = 0; i < nextHumanBdays.size() || i < 5; i++) {
+        for (int i = 0; i < nextHumanBdays.size() && i < 5; i++) {
             model.addAttribute("human" + i, nextHumanBdays.get(i).toString());
         }
-
 
         return "next";
     }

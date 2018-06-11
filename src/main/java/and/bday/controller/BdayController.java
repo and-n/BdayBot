@@ -1,5 +1,8 @@
-package and.bday.service;
+package and.bday.controller;
 
+import and.bday.service.CongratulationService;
+import and.bday.service.HumanService;
+import and.bday.service.SlackIntegrationService;
 import and.bday.service.model.CongratulationMessage;
 import and.bday.service.model.Human;
 import org.apache.log4j.Logger;
