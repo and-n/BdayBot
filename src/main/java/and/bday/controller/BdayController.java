@@ -1,6 +1,5 @@
 package and.bday.controller;
 
-import and.bday.service.CongratulationService;
 import and.bday.service.HumanService;
 import and.bday.service.SlackIntegrationService;
 import and.bday.service.model.CongratulationMessage;
@@ -26,7 +25,6 @@ public class BdayController {
 
     private HumanService humanService;
     private SlackIntegrationService slackIntegrationService;
-    private CongratulationService congratulationService;
 
     @Autowired
     public void setHumanService(HumanService humanService) {
@@ -36,11 +34,6 @@ public class BdayController {
     @Autowired
     public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
         this.slackIntegrationService = slackIntegrationService;
-    }
-
-    @Autowired
-    public void setCongratulationService(CongratulationService congratulationService) {
-        this.congratulationService = congratulationService;
     }
 
     @RequestMapping(value = "/human", method = RequestMethod.GET)

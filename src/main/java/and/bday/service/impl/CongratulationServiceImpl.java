@@ -5,6 +5,7 @@ import and.bday.service.FileService;
 import and.bday.service.model.CongratulationMessage;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,8 @@ public class CongratulationServiceImpl implements CongratulationService {
 
     private static final Logger log = Logger.getLogger(CongratulationServiceImpl.class);
     private static Random randomGenerator = new Random();
-    private final String congratulationMessagesFile = System.getProperty("messageFileName", "messages.json");
+    @Value("${messageFileName:messages.json}")
+    private String congratulationMessagesFile;
     private FileService<CongratulationMessage> messageFileService;
 
     @Autowired

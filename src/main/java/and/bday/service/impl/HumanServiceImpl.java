@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ import java.util.stream.Collectors;
 public class HumanServiceImpl implements HumanService {
 
     private final Logger log = Logger.getLogger(HumanServiceImpl.class);
-    private final String humanListFile = System.getProperty("humanListFile", "humans.json");
+    @Value("${humanListFile:humans.json}")
+    private String humanListFile;
     private FileService<Human> humanFileService;
 
     @Autowired

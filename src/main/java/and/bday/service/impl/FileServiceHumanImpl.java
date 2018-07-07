@@ -1,6 +1,7 @@
 package and.bday.service.impl;
 
 import and.bday.service.FileService;
+import and.bday.service.model.Human;
 import com.fatboyindustrial.gsonjodatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,21 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class FileServiceImpl<T> implements FileService<T> {
+public class FileServiceHumanImpl implements FileService<Human> {
 
     private static final Logger log = Logger.getLogger(FileService.class);
     private final Gson gson = Converters.registerDateTime(new GsonBuilder().setPrettyPrinting()).create();
 
     @Override
-    public List<T> loadListFromFile(String fileName) {
+    public List<Human> loadListFromFile(String fileName) {
 
-        Type listType = new TypeToken<ArrayList<T>>() {
+        Type listType = new TypeToken<List<Human>>() {
         }.getType();
-        final List<T> loadedDataList = new ArrayList<>();
+        final List<Human> loadedDataList = new ArrayList<>();
+
         synchronized (gson) {
             final Path filePath = Paths.get(fileName);
             if (Files.exists(filePath)) {
-                try (final FileReader reader = new FileReader(fileName)) {
+                try (final Reader reader = new FileReader(fileName)) {
                     loadedDataList.addAll(gson.fromJson(reader, listType));
                 } catch (Exception e) {
                     log.error("File " + fileName + " loading problem", e);
@@ -46,7 +49,7 @@ public class FileServiceImpl<T> implements FileService<T> {
     }
 
     @Override
-    public void saveListToFile(List<T> info, String fileName) {
+    public void saveListToFile(List<Human> info, String fileName) {
         synchronized (gson) {
             final Path filePath = Paths.get(fileName);
             try (final FileWriter fw = new FileWriter(filePath.toFile())) {
