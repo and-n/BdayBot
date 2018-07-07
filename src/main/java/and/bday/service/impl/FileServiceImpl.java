@@ -1,11 +1,9 @@
 package and.bday.service.impl;
 
 import and.bday.service.FileService;
-import and.bday.service.model.Human;
 import com.fatboyindustrial.gsonjodatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -21,23 +19,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class FileServiceHumanImpl implements FileService<Human> {
+public class FileServiceImpl<T> implements FileService<T> {
 
     private static final Logger log = Logger.getLogger(FileService.class);
     private final Gson gson = Converters.registerDateTime(new GsonBuilder().setPrettyPrinting()).create();
 
     @Override
-    public List<Human> loadListFromFile(String fileName) {
-
-        Type listType = new TypeToken<List<Human>>() {
-        }.getType();
-        final List<Human> loadedDataList = new ArrayList<>();
+    public List<T> loadListFromFile(final String fileName, final Type gsonLoadype) {
+        final List<T> loadedDataList = new ArrayList<>();
 
         synchronized (gson) {
             final Path filePath = Paths.get(fileName);
             if (Files.exists(filePath)) {
                 try (final Reader reader = new FileReader(fileName)) {
-                    loadedDataList.addAll(gson.fromJson(reader, listType));
+                    loadedDataList.addAll(gson.fromJson(reader, gsonLoadype));
                 } catch (Exception e) {
                     log.error("File " + fileName + " loading problem", e);
                 }
@@ -49,7 +44,7 @@ public class FileServiceHumanImpl implements FileService<Human> {
     }
 
     @Override
-    public void saveListToFile(List<Human> info, String fileName) {
+    public void saveListToFile(List<T> info, String fileName) {
         synchronized (gson) {
             final Path filePath = Paths.get(fileName);
             try (final FileWriter fw = new FileWriter(filePath.toFile())) {

@@ -7,15 +7,24 @@ import com.ullink.slack.simpleslackapi.*;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 import com.ullink.slack.simpleslackapi.replies.SlackMessageReply;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 
 @Service
 public class SlackIntegrationServiceImpl implements SlackIntegrationService {
 
     private static final Logger log = Logger.getLogger(SlackIntegrationServiceImpl.class);
-    private static final SlackSession session = SlackSessionFactory.createWebSocketSlackSession(System.getProperty("slack_bot_id", "unknownBotKey"));
+    @Value("${slack_bot_id}")
+    private static String key;
+    private static SlackSession session;
+
+    @PostConstruct
+    private static void init() {
+        session = SlackSessionFactory.createWebSocketSlackSession(key);
+    }
 
     @Override
     public void sendCongratulation(Human human, CongratulationMessage congratulationMessage) {
@@ -31,7 +40,7 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
             }
         } catch (final Exception e) {
             log.error("Fail send message ", e);
-            sendError("fail to send message\n for " + human + "''' \nand '" + e.getMessage()+"'");
+            sendError("fail to send message\n for " + human + "''' \nand '" + e.getMessage() + "'");
         }
     }
 
