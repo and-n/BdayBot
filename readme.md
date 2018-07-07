@@ -1,1 +1,1 @@
-Text here
+Bot for sending Bday message to chat
