@@ -7,4 +7,6 @@ public interface SlackIntegrationService {
 
     void sendCongratulation(Human human, CongratulationMessage congratulationMessage);
 
+    void sendError(String message);
+
 }

@@ -18,11 +18,13 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
 
     private static final Logger log = Logger.getLogger(SlackIntegrationServiceImpl.class);
     @Value("${slack_bot_id}")
-    private static String key;
-    private static SlackSession session;
+    private String key;
+    private SlackSession session;
+    @Value("${channelName}")
+    private String channelName;
 
     @PostConstruct
-    private static void init() {
+    private void init() {
         session = SlackSessionFactory.createWebSocketSlackSession(key);
     }
 
@@ -30,7 +32,7 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
     public void sendCongratulation(Human human, CongratulationMessage congratulationMessage) {
         try {
             if (checkConnection()) {
-                final SlackChannel channel = session.findChannelByName("bdaytest");
+                final SlackChannel channel = session.findChannelByName(channelName);
                 final SlackUser user = findUserForHuman(human);
 
                 SlackMessageHandle<SlackMessageReply> messageHandle = session.sendMessage(channel, "Happy birthday! <@" + user.getId() + ">   ");
@@ -73,7 +75,8 @@ public class SlackIntegrationServiceImpl implements SlackIntegrationService {
         return slackUser;
     }
 
-    public static void sendError(final String message) {
+    @Override
+    public void sendError(final String message) {
         try {
             SlackUser user = session.findUserById("U14E136GM");
             session.sendMessageToUser(user, new SlackPreparedMessage.Builder().withMessage(message).build());

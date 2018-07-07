@@ -1,10 +1,12 @@
 package and.bday.service.impl;
 
 import and.bday.service.FileService;
+import and.bday.service.SlackIntegrationService;
 import com.fatboyindustrial.gsonjodatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
@@ -23,6 +25,12 @@ public class FileServiceImpl<T> implements FileService<T> {
 
     private static final Logger log = Logger.getLogger(FileService.class);
     private final Gson gson = Converters.registerDateTime(new GsonBuilder().setPrettyPrinting()).create();
+    private SlackIntegrationService slackIntegrationService;
+
+    @Autowired
+    public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
+        this.slackIntegrationService = slackIntegrationService;
+    }
 
     @Override
     public List<T> loadListFromFile(final String fileName, final Type gsonLoadype) {
@@ -35,6 +43,7 @@ public class FileServiceImpl<T> implements FileService<T> {
                     loadedDataList.addAll(gson.fromJson(reader, gsonLoadype));
                 } catch (Exception e) {
                     log.error("File " + fileName + " loading problem", e);
+                    slackIntegrationService.sendError("load form file error " + e.getMessage());
                 }
             } else {
                 saveListToFile(loadedDataList, fileName);
@@ -56,7 +65,7 @@ public class FileServiceImpl<T> implements FileService<T> {
                 log.info("file " + fileName + " created");
             } catch (IOException e) {
                 log.error("Save to fail error! ", e);
-                SlackIntegrationServiceImpl.sendError("save to file error " + e.getMessage());
+                slackIntegrationService.sendError("save to file error " + e.getMessage());
             }
         }
     }
