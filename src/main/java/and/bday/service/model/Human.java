@@ -1,6 +1,8 @@
 package and.bday.service.model;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Objects;
 
@@ -32,10 +34,11 @@ public class Human {
 
     @Override
     public String toString() {
-        return "Human{" +
+        DateTimeFormatter dtfOut = DateTimeFormat.forPattern("dd-MM-yyyy");
+        return "Human {" +
                 "name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
-                ", bdayDate='" + bdayDate + '\'' +
+                ", bdayDate='" + dtfOut.print(bdayDate) + '\'' +
                 '}';
     }
 

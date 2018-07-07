@@ -3,13 +3,16 @@ package and.bday.service.impl;
 import and.bday.service.FileService;
 import and.bday.service.HumanService;
 import and.bday.service.model.Human;
+import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,8 +21,11 @@ import java.util.stream.Collectors;
 public class HumanServiceImpl implements HumanService {
 
     private final Logger log = Logger.getLogger(HumanServiceImpl.class);
-    private final String humanListFile = System.getProperty("humanListFile", "humans.json");
+    @Value("${humanListFile:humans.json}")
+    private String humanListFile;
     private FileService<Human> humanFileService;
+    private final Type gsonLoadype = new TypeToken<List<Human>>() {
+    }.getType();
 
     @Autowired
     public void setHumanFileService(FileService<Human> humanFileService) {
@@ -33,7 +39,8 @@ public class HumanServiceImpl implements HumanService {
 
     @Override
     public List<Human> whosBdayAtDay(DateTime date) {
-        final List<Human> humansBdayList = humanFileService.loadListFromFile(humanListFile);
+
+        final List<Human> humansBdayList = humanFileService.loadListFromFile(humanListFile, gsonLoadype);
         final List<Human> listForToday = humansBdayList
                 .stream()
                 .filter(human -> human.getBdayDate().dayOfYear().equals(date.dayOfYear()))
@@ -45,7 +52,7 @@ public class HumanServiceImpl implements HumanService {
     @Override
     public void addHuman(Human human) {
         if (human != null) {
-            List<Human> allHumans = humanFileService.loadListFromFile(humanListFile);
+            List<Human> allHumans = humanFileService.loadListFromFile(humanListFile, gsonLoadype);
             allHumans.remove(human);
             allHumans.add(human);
             humanFileService.saveListToFile(allHumans, humanListFile);
@@ -90,7 +97,7 @@ public class HumanServiceImpl implements HumanService {
     public void removeHuman(final Human human) {
         log.info("remove human " + human);
         humanFileService.saveListToFile(
-                humanFileService.loadListFromFile(humanListFile).stream()
+                humanFileService.loadListFromFile(humanListFile, gsonLoadype).stream()
                         .filter(human1 -> !human1.equals(human))
                         .collect(Collectors.toList())
                 , humanListFile);
@@ -99,7 +106,7 @@ public class HumanServiceImpl implements HumanService {
     public void removeHumanByFullName(final String fullName) {
         log.info("remove human by full name " + fullName);
         humanFileService.saveListToFile(
-                humanFileService.loadListFromFile(humanListFile).stream()
+                humanFileService.loadListFromFile(humanListFile, gsonLoadype).stream()
                         .filter(human1 -> !(human1.getName() + " " + human1.getSurname()).toLowerCase().equals(fullName.toLowerCase()))
                         .collect(Collectors.toList())
                 , humanListFile);

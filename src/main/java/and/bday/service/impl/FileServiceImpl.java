@@ -1,16 +1,18 @@
 package and.bday.service.impl;
 
 import and.bday.service.FileService;
+import and.bday.service.SlackIntegrationService;
 import com.fatboyindustrial.gsonjodatime.Converters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,20 +25,25 @@ public class FileServiceImpl<T> implements FileService<T> {
 
     private static final Logger log = Logger.getLogger(FileService.class);
     private final Gson gson = Converters.registerDateTime(new GsonBuilder().setPrettyPrinting()).create();
+    private SlackIntegrationService slackIntegrationService;
+
+    @Autowired
+    public void setSlackIntegrationService(SlackIntegrationService slackIntegrationService) {
+        this.slackIntegrationService = slackIntegrationService;
+    }
 
     @Override
-    public List<T> loadListFromFile(String fileName) {
-
-        Type listType = new TypeToken<ArrayList<T>>() {
-        }.getType();
+    public List<T> loadListFromFile(final String fileName, final Type gsonLoadype) {
         final List<T> loadedDataList = new ArrayList<>();
+
         synchronized (gson) {
             final Path filePath = Paths.get(fileName);
             if (Files.exists(filePath)) {
-                try (final FileReader reader = new FileReader(fileName)) {
-                    loadedDataList.addAll(gson.fromJson(reader, listType));
+                try (final Reader reader = new FileReader(fileName)) {
+                    loadedDataList.addAll(gson.fromJson(reader, gsonLoadype));
                 } catch (Exception e) {
                     log.error("File " + fileName + " loading problem", e);
+                    slackIntegrationService.sendError("load form file error " + e.getMessage());
                 }
             } else {
                 saveListToFile(loadedDataList, fileName);
@@ -58,7 +65,7 @@ public class FileServiceImpl<T> implements FileService<T> {
                 log.info("file " + fileName + " created");
             } catch (IOException e) {
                 log.error("Save to fail error! ", e);
-                SlackIntegrationServiceImpl.sendError("save to file error " + e.getMessage());
+                slackIntegrationService.sendError("save to file error " + e.getMessage());
             }
         }
     }
